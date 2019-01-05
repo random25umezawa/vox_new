@@ -87,7 +87,7 @@ class Vox2D{
 
 		let _merged_size = [];
 		for(let i = 0; i < 3; i++) {
-			_merged_size.push(_max_offset[i]-_min_offset[i]+1);
+			_merged_size.push(_max_offset[i]-_min_offset[i]);
 		}
 
 		let _block_dict = {};
