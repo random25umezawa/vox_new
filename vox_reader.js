@@ -4,7 +4,12 @@ class Vox{
 		this.cursor = 0;
 		this.getString(4);
 		this.getValue(4);
+		this.palette;
 		this.chunk = this.getChunk();
+	}
+
+	getPalette() {
+		return this.palette || this.defaultPalette();
 	}
 
 	basicChunkInfo() {
@@ -68,6 +73,7 @@ class Vox{
 		}
 		//console.log("palette",JSON.stringify(chunk_data.data));
 		chunk_data.data = this.convertPalette(chunk_data.data);
+		this.palette = chunk_data.data;
 		return chunk_data;
 	}
 
@@ -97,12 +103,12 @@ class Vox{
 		if(chunk_data.frames[0]["_r"]) {
 			let _r_b = chunk_data.frames[0]["_r"];
 			chunk_data.rotation = [[0,0,0],[0,0,0],[0,0,0]];
-			let _1_row_index = ((_r_b>>0)&0b0000011);
-			let _2_row_index = ((_r_b>>2)&0b0000011);
+			let _1_row_index = ((_r_b>>>0)&0b0000011);
+			let _2_row_index = ((_r_b>>>2)&0b0000011);
 			let _3_row_index = 0;
-			let _1_sign = ((_r_b>>4)&0b0000001)==1;
-			let _2_sign = ((_r_b>>5)&0b0000001)==1;
-			let _3_sign = ((_r_b>>6)&0b0000001)==1;
+			let _1_sign = ((_r_b>>>4)&0b0000001)==1;
+			let _2_sign = ((_r_b>>>5)&0b0000001)==1;
+			let _3_sign = ((_r_b>>>6)&0b0000001)==1;
 			chunk_data.rotation[0][_1_row_index] = (_1_sign?-1:1);
 			chunk_data.rotation[1][_2_row_index] = (_2_sign?-1:1);
 			chunk_data.rotation[2][_3_row_index] = (_3_sign?-1:1);
@@ -200,10 +206,8 @@ class Vox{
 
 	convertPalette(temp_palette) {
 		let return_palette = [0x00000000];
-		//console.log("palette");
 		for(let i = 0; i < temp_palette.length-1; i++) {
-			return_palette.push(((temp_palette[i]&0x0000ff)<<24)+((temp_palette[i]&0x00ff00)<<8)+((temp_palette[i]&0xff0000)>>8)+((temp_palette[i]&0xff000000)>>24));
-			//console.log(0x000000ff,((temp_palette[i]&0x0000ff)),((temp_palette[i]&0x00ff00)>>8),((temp_palette[i]&0xff0000)>>16));
+			return_palette.push(((temp_palette[i]&0x000000ff)<<24)|((temp_palette[i]&0x0000ff00)<<8)|((temp_palette[i]&0x00ff0000)>>>8)|((temp_palette[i]&0xff000000)>>>24));
 		}
 		return return_palette;
 	}

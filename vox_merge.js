@@ -41,7 +41,6 @@ class Vox2D{
 	}
 
 	transformXYZI(_arr,_offset,_rotation) {
-		console.log(_arr);
 		let ret = [];
 		let _pos = _arr[0];
 		let _size = _arr[1];
@@ -69,7 +68,6 @@ class Vox2D{
 				_block[3],
 			]);
 		}
-		console.log(ret);
 		return [_pos,_size,ret];
 	}
 
