@@ -4,6 +4,8 @@ class Vox{
 		this.cursor = 0;
 		this.getString(4);
 		this.getValue(4);
+		this.models = [];
+		this.nodes = {};
 		this.chunk = this.getChunk();
 	}
 
@@ -57,6 +59,7 @@ class Vox{
 				[this.getValue(1),this.getValue(1),this.getValue(1),this.getValue(1)]
 			);
 		}
+		this.models.push(chunk_data.blocks);
 		return chunk_data;
 	}
 
@@ -87,6 +90,25 @@ class Vox{
 		chunk_data.frames = [];
 		for(let i = 0; i < chunk_data.num_of_frames; i++) {
 			chunk_data.frames.push(this.typeDICT());
+		}
+		chunk_data.transform = {x:0,y:0,z:0};
+		if(chunk_data.frames[0]["_t"]) {
+			let _xyz_t = chunk_data.frames[0]["_t"].split(" ").map(_str=>parseInt(_str));
+			chunk_data.transform = {x:_xyz_t[0],y:_xyz_t[1],z:_xyz_t[2]};
+		}
+		chunk_data.rotation = [[1,0,0],[0,1,0],[0,0,1]];
+		if(chunk_data.frames[0]["_r"]) {
+			let _r_b = chunk_data.frames[0]["_r"];
+			chunk_data.rotation = [[0,0,0],[0,0,0],[0,0,0]];
+			let _1_row_index = ((_r_b>>0)&0b0000011);
+			let _2_row_index = ((_r_b>>2)&0b0000011);
+			let _3_row_index = 0;
+			let _1_sign = ((_r_b>>4)&0b0000001)==1;
+			let _2_sign = ((_r_b>>5)&0b0000001)==1;
+			let _3_sign = ((_r_b>>6)&0b0000001)==1;
+			chunk_data.rotation[0][_1_row_index] = (_1_sign?-1:1);
+			chunk_data.rotation[1][_2_row_index] = (_2_sign?-1:1);
+			chunk_data.rotation[2][_3_row_index] = (_3_sign?-1:1);
 		}
 		return chunk_data;
 	}
@@ -142,7 +164,6 @@ class Vox{
 		if(!this.hasNext()) return null;
 		let name = this.getString(4);
 		let chunk = {};
-		console.log(name);
 		if(name=="MAIN") chunk = this.chunkMain();
 		if(name=="PACK") chunk = this.chunkPack();
 		if(name=="SIZE") chunk = this.chunkSize();
@@ -156,7 +177,55 @@ class Vox{
 		if(name=="LAYR") chunk = this.chunkLAYR();
 		if(name=="rOBJ") chunk = this.chunkrOBJ();
 		chunk.name = name;
+		if(chunk.node_id>=0) {
+			this.nodes[chunk.node_id] = chunk;
+		}
 		return chunk;
+	}
+
+	getModel(chunk) {
+		let name = chunk.name;
+		if(name=="nTRN") {
+			return this.transformXYZI(this.getModel(this.nodes[chunk.child_node_id]),chunk.transform,chunk.rotation);
+		}
+		if(name=="nGRP") {
+			return this.mergeXYZI(chunk.children.map(_child_node_id=>this.getModel(this.nodes[_child_node_id])));
+		}
+		if(name=="nSHP") {
+			return this.mergeXYZI(chunk.models.map(_arr=>this.models[_arr[0]]));
+		}
+	}
+
+	transformXYZI(_blocks,_offset,_rotation) {
+		let ret = [];
+		for(let _block of _blocks) {
+			let _rotated = [0,0,0];
+			for(let i = 0; i < 3; i++) {
+				for(let j = 0; j < 3; j++) {
+					_rotated[i] += _rotation[i][j]*_block[j];
+				}
+			}
+			ret.push([_rotated[0]+_offset.x,_rotated[1]+_offset.y,_rotated[2]+_offset.z,_block[3]]);
+		}
+		return ret;
+	}
+
+	mergeXYZI(_arr) {
+		let _block_dict = {};
+		for(let _blocks of _arr) {
+			for(let _block of _blocks) {
+				let _str = `${_block[0]},${_block[1]},${_block[2]}`;
+				//if(!_block_dict[_str]) {
+					_block_dict[_str] = _block;
+				//}
+			}
+		}
+		let ret = [];
+		for(let key of Object.keys(_block_dict)) {
+			let _block = _block_dict[key];
+			ret.push([_block[0],_block[1],_block[2],_block[3]]);
+		}
+		return ret;
 	}
 
 	defaultPalette() {
