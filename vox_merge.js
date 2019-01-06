@@ -23,17 +23,19 @@ class Vox2D{
 		return _arr;
 	}
 
-	getRootModel() {
-		return this.getModel(this.nodes[0]);
+	getRootModel(layers) {
+		if(!layers) layers = {};
+		return this.getModel(this.nodes[0],layers);
 	}
 
-	getModel(chunk) {
+	getModel(chunk,layers) {
 		let name = chunk.name;
 		if(name=="nTRN") {
-			return this.transformXYZI(this.getModel(this.nodes[chunk.child_node_id]),chunk.transform,chunk.rotation);
+			if(layers[chunk.layer_id]) return [[0,0,0],[0,0,0],[]];
+			return this.transformXYZI(this.getModel(this.nodes[chunk.child_node_id],layers),chunk.transform,chunk.rotation);
 		}
 		if(name=="nGRP") {
-			return this.mergeXYZI(chunk.children.map(_child_node_id=>this.getModel(this.nodes[_child_node_id])));
+			return this.mergeXYZI(chunk.children.map(_child_node_id=>this.getModel(this.nodes[_child_node_id],layers)));
 		}
 		if(name=="nSHP") {
 			return this.mergeXYZI(chunk.models.map(_arr=>[[0,0,0],this.sizes[_arr[0]],this.models[_arr[0]]]));
@@ -79,6 +81,7 @@ class Vox2D{
 			let _pos = _set[0];
 			let _size = _set[1];
 			let _blocks = _set[2];
+			if(_blocks.length<=0) continue;
 			for(let i = 0; i < 3; i++) {
 				_min_offset[i] = Math.min(_min_offset[i],_pos[i]);
 				_max_offset[i] = Math.max(_max_offset[i],_pos[i]+_size[i]);

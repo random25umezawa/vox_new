@@ -21,7 +21,7 @@ class VoxExport {
 		danmen_images[0].write(`${path}`);
 		*/
 
-		let splits = 120;
+		let splits = 36;
 		let angles = [...Array(splits).keys()].map(num=>360*num/splits);
 		let rotate_images = await Promise.all(angles.map(angle=>this.createRotateImage(angle,danmen_images)));
 		for(let i = 0; i < rotate_images.length; i++) {
