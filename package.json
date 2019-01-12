@@ -1,0 +1,6 @@
+{
+  "main": "index.js",
+  "dependencies": {
+    "jimp": "^0.6.0"
+  }
+}

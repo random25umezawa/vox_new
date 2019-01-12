@@ -7,26 +7,21 @@ class VoxExport {
 		this.palette = _palette;
 	}
 
-	async exportDanmens(path) {
+	setSplit(split) {
+		this.split = split;
+	}
+
+	async createRotates() {
 		let zs = [...Array(this.size[2]).keys()];
 		let layers = zs.map(_=>[]);
 		for(let block of this.blocks) {
 			layers[block[2]].push(block);
 		}
 		let danmen_images = await Promise.all(zs.map(z=>this.createDanmen(z,layers[z])));
-		/*
-		for(let i = 1; i < danmen_images.length; i++) {
-			danmen_images[0].composite(danmen_images[i],0,i);
-		}
-		danmen_images[0].write(`${path}`);
-		*/
 
-		let splits = 36;
-		let angles = [...Array(splits).keys()].map(num=>360*num/splits);
+		let angles = [...Array(this.split).keys()].map(num=>360*num/this.split);
 		let rotate_images = await Promise.all(angles.map(angle=>this.createRotateImage(angle,danmen_images)));
-		for(let i = 0; i < rotate_images.length; i++) {
-			rotate_images[i].resize(rotate_images[i].bitmap.width*4,rotate_images[i].bitmap.height*4,Jimp.RESIZE_NEAREST_NEIGHBOR).write(`rotate/${i}_${path}`);
-		}
+		return rotate_images;
 	}
 
 	async createDanmen(z,layer) {
