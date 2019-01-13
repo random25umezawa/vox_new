@@ -1,0 +1,10 @@
+node_modules
+*
+!package/json
+!.gitignore
+!index.js
+!main.js
+!memo
+!vox_reader.js
+!vox_merge.js
+!vox_export.js
