@@ -23,6 +23,28 @@ class Vox2D{
 		return _arr;
 	}
 
+	getRootTree() {
+		return this.getTree(this.nodes[0]);
+	}
+
+	getTree(chunk) {
+		let _arr = {};
+		_arr.chunk = chunk;
+		_arr.children = [];
+		let name = chunk.name;
+		if(name=="nTRN") {
+			_arr.children.push(this.getTree(this.nodes[chunk.child_node_id]));
+		}
+		if(name=="nGRP") {
+			for(let child_node_id of chunk.children) {
+				_arr.children.push(this.getTree(this.nodes[child_node_id]));
+			}
+		}
+		if(name=="nSHP") {
+		}
+		return _arr;
+	}
+
 	getRootModel(layers) {
 		if(!layers) layers = {};
 		return this.getModel(this.nodes[0],layers);
